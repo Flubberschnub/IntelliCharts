@@ -2,6 +2,7 @@ import random
 import mathproblem
 import timestable
 import time
+import math
 
 def load_weights(filename):
     weights = dict()
@@ -17,6 +18,8 @@ def save_weights(weights, filename):
             f.write(str(key) + ' ' + str(val) + '\n')
 
 learningRate = 0.1
+desiredAnswerTime = 3
+
 weights = dict()
 for i in range(0,13):
     weights[i] = 1
@@ -55,14 +58,26 @@ for i in range(0, num_questions):
     num2 = random.choices(list(weights.keys()), weights=list(weights.values()))[0]
     problem = timestable.TimesTable(num1, num2)
     print(problem.get_problem())
+
+    # QUESTION timer
+    questionStartTime = time.time()
+
     answer = int(input())
+
+    questionEndTime = time.time()
+    timeElapsed = questionEndTime - questionStartTime
+
     if problem.check_answer(answer):
         print("Correct!")
+        weights[num1] += (weights[num1]) * learningRate * (math.tanh(timeElapsed-desiredAnswerTime))
+        weights[num2] += (weights[num2]) * learningRate * (math.tanh(timeElapsed-desiredAnswerTime))
         score += 1
     else:
         print("Incorrect!")
-        weights[num1] += learningRate * (weights[num1])
-        weights[num2] += learningRate * (weights[num2])
+        weights[num1] += (weights[num1]) * learningRate * (1 + math.tanh(timeElapsed))
+        weights[num2] += (weights[num2]) * learningRate * (1 + math.tanh(timeElapsed))
+
+
         total = sum(weights.values())
         for key in weights:
             weights[key] /= total
